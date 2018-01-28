@@ -1,3 +1,6 @@
+/*
+TEST COMMIT
+ */
 package org.processmining.plugins;
 
 import org.deckfour.xes.model.XLog;
