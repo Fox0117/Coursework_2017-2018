@@ -4,13 +4,14 @@ import org.processmining.framework.plugin.annotations.*;
 import org.processmining.framework.plugin.*;
 import org.processmining.contexts.uitopia.*;
 import org.processmining.contexts.uitopia.annotations.*;
+import org.processmining.models.graphbased.directed.transitionsystem.TransitionSystem;
 
 // Название плагина, наименование входных-выходных объектов, тип возвращаемого значения.
 //TODO Поставить актуальные названия
 @Plugin(name = "FsmEventLogReduction",
-		parameterLabels = {"FSM Event Log", "FSM Event Log Reduction Configuration"},
+		parameterLabels = {"FSM Event Log", "FSM Dictionary", "FSM Event Log Reduction Configuration"},
 		returnLabels = {"Reduce FSM Event Log"},
-		returnTypes = {Object.class})
+		returnTypes = {TransitionSystem.class})
 // В случае, если возвращаемых объектов несколько - нужно возвращать Object[]
 
 public class FsmEventLogReductionPlugin {
@@ -23,20 +24,20 @@ public class FsmEventLogReductionPlugin {
 	// Показывает, какие параметры (по индексам) мы используем в данном методе (из parameterLabels)
 	// Можно указать variantLabel (сейчас не критично)
 	@PluginVariant(requiredParameterLabels = { 0, 1, 2 })
-	public static Object fsmEventLogReduction(final PluginContext context,
-											  final Object firstPararm,
-											  final Object secondPararm,
+	public static TransitionSystem fsmEventLogReduction(final PluginContext context,
+											  TransitionSystem firstPararm,
+											  TransitionSystem secondPararm,
 											  final FsmEventLogReductionConfiguration config){
-		return null;
+		return firstPararm;
 	}
 
 
 	// Stub
 	@UITopiaVariant(affiliation = "HSE", author = "A. Konchagin", email = "amkonchagin@hse.ru")
 	@PluginVariant(requiredParameterLabels = { 0, 1 })
-	public static Object fsmEventLogReduction(final PluginContext context,
-											  final Object firstPararm,
-											  final Object secondPararm){
+	public static TransitionSystem fsmEventLogReduction(final PluginContext context,
+											  TransitionSystem firstPararm,
+											  TransitionSystem secondPararm){
 		FsmEventLogReductionConfiguration config = new FsmEventLogReductionConfiguration(new Object());
 		populate(context, config);
 		return fsmEventLogReduction(context, firstPararm, secondPararm, config);
