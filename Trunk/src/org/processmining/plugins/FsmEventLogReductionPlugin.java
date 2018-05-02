@@ -1,5 +1,6 @@
 package org.processmining.plugins;
 
+import org.deckfour.xes.model.XLog;
 import org.processmining.framework.plugin.annotations.*;
 import org.processmining.framework.plugin.*;
 import org.processmining.contexts.uitopia.*;
@@ -7,11 +8,10 @@ import org.processmining.contexts.uitopia.annotations.*;
 import org.processmining.models.graphbased.directed.transitionsystem.TransitionSystem;
 
 // Название плагина, наименование входных-выходных объектов, тип возвращаемого значения.
-//TODO Поставить актуальные названия
-@Plugin(name = "FsmEventLogReduction",
+@Plugin(name = "FSMEventLogReduction",
 		parameterLabels = {"FSM Event Log", "FSM Dictionary", "FSM Event Log Reduction Configuration"},
-		returnLabels = {"Reduce FSM Event Log"},
-		returnTypes = {TransitionSystem.class})
+		returnLabels = {"Reduced FSM Event Log"},
+		returnTypes = {FSMTransitionSystem.class})
 // В случае, если возвращаемых объектов несколько - нужно возвращать Object[]
 
 public class FsmEventLogReductionPlugin {
@@ -20,24 +20,27 @@ public class FsmEventLogReductionPlugin {
 	// Stub
 	// Организация, автор, мыло
 	//TODO Проверить корректность почты
-	@UITopiaVariant(affiliation = "HSE", author = "A. Konchagin", email = "amkonchagin@hse.ru")
+	@UITopiaVariant(affiliation = "NRU HSE", author = "A. Konchagin", email = "amkonchagin@hse.ru")
 	// Показывает, какие параметры (по индексам) мы используем в данном методе (из parameterLabels)
 	// Можно указать variantLabel (сейчас не критично)
 	@PluginVariant(requiredParameterLabels = { 0, 1, 2 })
 	public static TransitionSystem fsmEventLogReduction(final PluginContext context,
-											  TransitionSystem firstPararm,
-											  TransitionSystem secondPararm,
+											  XLog log,
+											  XLog dictionary,
 											  final FsmEventLogReductionConfiguration config){
-		return firstPararm;
+
+		FSMTransitionSystem fsmLog = new FSMTransitionSystem("TEST", log, "concept:name");
+		fsmLog.minizeFSM();
+		return fsmLog;//FsmEventLogReductionAlgo.reduceFsmTypeLog(log, dictionary);
 	}
 
 
 	// Stub
-	@UITopiaVariant(affiliation = "HSE", author = "A. Konchagin", email = "amkonchagin@hse.ru")
+	@UITopiaVariant(affiliation = "NRU HSE", author = "A. Konchagin", email = "amkonchagin@hse.ru")
 	@PluginVariant(requiredParameterLabels = { 0, 1 })
 	public static TransitionSystem fsmEventLogReduction(final PluginContext context,
-											  TransitionSystem firstPararm,
-											  TransitionSystem secondPararm){
+											  XLog firstPararm,
+											  XLog secondPararm){
 		FsmEventLogReductionConfiguration config = new FsmEventLogReductionConfiguration(new Object());
 		populate(context, config);
 		return fsmEventLogReduction(context, firstPararm, secondPararm, config);
