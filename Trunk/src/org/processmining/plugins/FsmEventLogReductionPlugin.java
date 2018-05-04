@@ -6,12 +6,13 @@ import org.processmining.framework.plugin.*;
 import org.processmining.contexts.uitopia.*;
 import org.processmining.contexts.uitopia.annotations.*;
 import org.processmining.models.graphbased.directed.transitionsystem.TransitionSystem;
+import org.processmining.models.graphbased.directed.transitionsystem.TransitionSystemImpl;
 
 // Название плагина, наименование входных-выходных объектов, тип возвращаемого значения.
 @Plugin(name = "FSMEventLogReduction",
 		parameterLabels = {"FSM Event Log", "FSM Dictionary", "FSM Event Log Reduction Configuration"},
 		returnLabels = {"Reduced FSM Event Log"},
-		returnTypes = {FSMTransitionSystem.class})
+		returnTypes = {TransitionSystem.class})
 // В случае, если возвращаемых объектов несколько - нужно возвращать Object[]
 
 public class FsmEventLogReductionPlugin {
@@ -25,25 +26,22 @@ public class FsmEventLogReductionPlugin {
 	// Можно указать variantLabel (сейчас не критично)
 	@PluginVariant(requiredParameterLabels = { 0, 1, 2 })
 	public static TransitionSystem fsmEventLogReduction(final PluginContext context,
-											  XLog log,
-											  XLog dictionary,
-											  final FsmEventLogReductionConfiguration config){
+															XLog log,
+															XLog dictionary,
+															final FsmEventLogReductionConfiguration config){
 
-		FSMTransitionSystem fsmLog = new FSMTransitionSystem("TEST", log, "concept:name");
-		fsmLog.minizeFSM();
-		return fsmLog;//FsmEventLogReductionAlgo.reduceFsmTypeLog(log, dictionary);
+		DictionaryTransitionSystem dictionaryTransitionSystem = new DictionaryTransitionSystem("TEST", dictionary, "concept:name");
+		return dictionaryTransitionSystem;//FsmEventLogReductionAlgo.reduceFsmTypeLog(log, dictionary);
 	}
 
 
 	// Stub
 	@UITopiaVariant(affiliation = "NRU HSE", author = "A. Konchagin", email = "amkonchagin@hse.ru")
 	@PluginVariant(requiredParameterLabels = { 0, 1 })
-	public static TransitionSystem fsmEventLogReduction(final PluginContext context,
-											  XLog firstPararm,
-											  XLog secondPararm){
+	public static TransitionSystem fsmEventLogReduction(final PluginContext context, XLog log, XLog dictionary){
 		FsmEventLogReductionConfiguration config = new FsmEventLogReductionConfiguration(new Object());
 		populate(context, config);
-		return fsmEventLogReduction(context, firstPararm, secondPararm, config);
+		return fsmEventLogReduction(context, log, dictionary, config);
 	}
 
 
