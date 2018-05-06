@@ -9,18 +9,32 @@ import org.processmining.models.graphbased.directed.transitionsystem.TransitionS
 import java.util.*;
 
 public class FSMTransitionSystem extends TransitionSystemImpl {
+    private List<String> traceNames;
+    private Map<State, Set<Integer>> traceByState = new LinkedHashMap<>();
+
     public FSMTransitionSystem(String label, XLog log, String keyName) {
         super(label);
         this.addState("");
+        traceByState.put(this.getNode(""), new LinkedHashSet<>());
+        traceNames = new ArrayList<>();
         for (int i = 0; i < log.size(); ++i) {
             StringBuilder prefix = new StringBuilder();
             XTrace trace = log.get(i);
+            traceNames.add(trace.getAttributes().get(keyName).toString());
             for (int j = 0; j < trace.size(); ++j) {
                 String fromPrefix = prefix.toString();
                 prefix.append(' ');
                 prefix.append(trace.get(j).getAttributes().get(keyName));
                 String toPrefix = prefix.toString();
                 this.addState(toPrefix);
+                State newState = this.getNode(toPrefix);
+                if (!traceByState.containsKey(newState))
+                    traceByState.put(newState, new LinkedHashSet<>());
+
+                traceByState.get(newState).add(i);
+                if (j == trace.size()-1)
+                    newState.setAccepting(true);
+
                 this.addTransition(fromPrefix, toPrefix, trace.get(j).getAttributes().get(keyName).toString());
             }
         }
@@ -33,8 +47,7 @@ public class FSMTransitionSystem extends TransitionSystemImpl {
         Iterator<State> stateIterator = this.getNodes().iterator();
         while (stateIterator.hasNext()) {
             State state = stateIterator.next();
-            Collection<Transition> outEdges = getOutEdges(state);
-            if (outEdges == null || outEdges.size() == 0)
+            if (state.isAccepting())
                 statesByGroups.get(0).add(state);
             else
                 statesByGroups.get(1).add(state);
@@ -48,6 +61,10 @@ public class FSMTransitionSystem extends TransitionSystemImpl {
     private void unionGroupToState(List<State> groupOfStates) {
         Object unitedState = formUnitedState(groupOfStates);
         boolean res = this.addState(unitedState);
+        State newState = this.getNode(unitedState);
+        if (!traceByState.containsKey(newState))
+            traceByState.put(newState, new LinkedHashSet<>());
+
         for (int i = 0; i < groupOfStates.size(); ++i) {
             Iterator<Transition> edges = getOutEdges(groupOfStates.get(i)).iterator();
             while (edges.hasNext()) {
@@ -65,6 +82,13 @@ public class FSMTransitionSystem extends TransitionSystemImpl {
                 this.addTransition(inEdge.getSource().getIdentifier(), unitedState, inEdge.getIdentifier());
             }
 
+            if (!this.getNode(unitedState).isAccepting() && groupOfStates.get(i).isAccepting())
+                this.getNode(unitedState).setAccepting(true);
+
+            for (Integer traceIdentifier: traceByState.get(groupOfStates.get(i)))
+                traceByState.get(newState).add(traceIdentifier);
+
+            traceByState.remove(groupOfStates.get(i));
             this.removeState(groupOfStates.get(i));
         }
     }

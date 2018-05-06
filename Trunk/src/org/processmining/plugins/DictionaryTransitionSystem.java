@@ -10,7 +10,6 @@ import java.util.*;
 
 public class DictionaryTransitionSystem extends TransitionSystemImpl {
     private State root;
-    private Set<State> terminatingStates = new LinkedHashSet<>();
     private Map<State, Map<Object, Transition>> outEdgesByIdentifiers = new LinkedHashMap<>();
     private String suffixLinkIdentifier = "# SUFFIX_LINK #";
     private String finalSuffixLinkIdentifier = "# FINAL_SUFFIX_LINK #";
@@ -30,7 +29,7 @@ public class DictionaryTransitionSystem extends TransitionSystemImpl {
                 this.addState(toPrefix);
                 State newState = this.getNode(toPrefix);
                 if (j == trace.size() - 1)
-                    terminatingStates.add(newState);
+                    newState.setAccepting(true);
 
                 State fromState = this.getNode(fromPrefix);
                 Object transitionIdentifier = trace.get(j).getAttributes().get(keyName).toString();
@@ -73,7 +72,7 @@ public class DictionaryTransitionSystem extends TransitionSystemImpl {
     }
 
     private void buildFinalSuffixLinkInternal(State fromState, State suffixState) {
-        while (suffixState != root && !terminatingStates.contains(suffixState))
+        while (suffixState != root && !suffixState.isAccepting())
             suffixState = outEdgesByIdentifiers.get(suffixState).get(suffixLinkIdentifier).getTarget();
 
         if (suffixState != root)

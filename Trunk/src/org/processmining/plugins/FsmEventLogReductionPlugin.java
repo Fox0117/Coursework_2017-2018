@@ -12,7 +12,7 @@ import org.processmining.models.graphbased.directed.transitionsystem.TransitionS
 @Plugin(name = "FSMEventLogReduction",
 		parameterLabels = {"FSM Event Log", "FSM Dictionary", "FSM Event Log Reduction Configuration"},
 		returnLabels = {"Reduced FSM Event Log"},
-		returnTypes = {TransitionSystem.class})
+		returnTypes = {FSMTransitionSystem.class})
 // В случае, если возвращаемых объектов несколько - нужно возвращать Object[]
 
 public class FsmEventLogReductionPlugin {
@@ -30,8 +30,10 @@ public class FsmEventLogReductionPlugin {
 															XLog dictionary,
 															final FsmEventLogReductionConfiguration config){
 
-		DictionaryTransitionSystem dictionaryTransitionSystem = new DictionaryTransitionSystem("TEST", dictionary, "concept:name");
-		return dictionaryTransitionSystem;//FsmEventLogReductionAlgo.reduceFsmTypeLog(log, dictionary);
+		//DictionaryTransitionSystem dictionaryTransitionSystem = new DictionaryTransitionSystem("TEST", dictionary, "concept:name");
+		FSMTransitionSystem fsmTransitionSystem = new FSMTransitionSystem("TEST", log, "concept:name");
+		fsmTransitionSystem.minizeFSM();
+		return fsmTransitionSystem;//FsmEventLogReductionAlgo.reduceFsmTypeLog(log, dictionary);
 	}
 
 
