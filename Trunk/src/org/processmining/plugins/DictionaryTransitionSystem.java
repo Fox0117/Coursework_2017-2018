@@ -96,7 +96,11 @@ public class DictionaryTransitionSystem extends TransitionSystemImpl {
         if (!outEdgesByIdentifiers.containsKey(fromState))
             outEdgesByIdentifiers.put(fromState, new LinkedHashMap<>());
 
-        this.addTransition(fromState.getIdentifier(), toState.getIdentifier(), identifier);
+        try {
+            this.addTransition(fromState.getIdentifier(), toState.getIdentifier(), identifier);
+        }
+        catch (Exception ex) {}
+
         outEdgesByIdentifiers.get(fromState).put(identifier,
                 new Transition(fromState, toState, identifier));
     }

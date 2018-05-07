@@ -35,12 +35,15 @@ public class FSMTransitionSystem extends TransitionSystemImpl {
                 if (j == trace.size()-1)
                     newState.setAccepting(true);
 
-                this.addTransition(fromPrefix, toPrefix, trace.get(j).getAttributes().get(keyName).toString());
+                try{
+                    this.addTransition(fromPrefix, toPrefix, trace.get(j).getAttributes().get(keyName).toString());
+                }
+                catch (Exception ex) {}
             }
         }
     }
 
-    public void minizeFSM() {
+    public synchronized void minizeFSM() {
         List<List<State>> statesByGroups = new LinkedList<>();
         statesByGroups.add(new LinkedList<>());
         statesByGroups.add(new LinkedList<>());
@@ -58,7 +61,7 @@ public class FSMTransitionSystem extends TransitionSystemImpl {
             unionGroupToState(statesByGroups.get(i));
     }
 
-    private void unionGroupToState(List<State> groupOfStates) {
+    private synchronized void unionGroupToState(List<State> groupOfStates) {
         Object unitedState = formUnitedState(groupOfStates);
         boolean res = this.addState(unitedState);
         State newState = this.getNode(unitedState);
@@ -69,17 +72,25 @@ public class FSMTransitionSystem extends TransitionSystemImpl {
             Iterator<Transition> edges = getOutEdges(groupOfStates.get(i)).iterator();
             while (edges.hasNext()) {
                 Transition outEdge = edges.next();
+                try {
+                    this.addTransition(unitedState, outEdge.getTarget().getIdentifier(), outEdge.getIdentifier());
+                }
+                catch (Exception ex) {}
+
                 this.removeTransition(outEdge.getSource().getIdentifier(),
                         outEdge.getTarget().getIdentifier(), outEdge.getIdentifier());
-                this.addTransition(unitedState, outEdge.getTarget().getIdentifier(), outEdge.getIdentifier());
             }
 
             edges = getInEdges(groupOfStates.get(i)).iterator();
             while (edges.hasNext()) {
                 Transition inEdge = edges.next();
+                try {
+                    this.addTransition(inEdge.getSource().getIdentifier(), unitedState, inEdge.getIdentifier());
+                }
+                catch (Exception ex) {}
+
                 this.removeTransition(inEdge.getSource().getIdentifier(),
                         inEdge.getTarget().getIdentifier(), inEdge.getIdentifier());
-                this.addTransition(inEdge.getSource().getIdentifier(), unitedState, inEdge.getIdentifier());
             }
 
             if (!this.getNode(unitedState).isAccepting() && groupOfStates.get(i).isAccepting())
@@ -93,7 +104,7 @@ public class FSMTransitionSystem extends TransitionSystemImpl {
         }
     }
 
-    private Object formUnitedState(List<State> groupOfStates) {
+    private synchronized Object formUnitedState(List<State> groupOfStates) {
         StringBuilder formState = new StringBuilder();
         for (int i = 0; i < groupOfStates.size(); ++i) {
             formState.append(groupOfStates.get(i));
@@ -103,7 +114,7 @@ public class FSMTransitionSystem extends TransitionSystemImpl {
         return formState.toString();
     }
 
-    private List<List<State>> splitOnGroups(List<List<State>> statesByGroups) {
+    private synchronized List<List<State>> splitOnGroups(List<List<State>> statesByGroups) {
         Map<State, Integer> groupNumbers = new LinkedHashMap<>();
         for (int i = 0; i < statesByGroups.size(); ++i)
             for (int j = 0; j < statesByGroups.get(i).size(); ++j)
@@ -142,7 +153,7 @@ public class FSMTransitionSystem extends TransitionSystemImpl {
         return statesByGroups;
     }
 
-    private boolean checkOutEdges(Map<Object, Transition> edgesByIdentifiers, Collection<Transition> outEdges2,
+    private synchronized boolean checkOutEdges(Map<Object, Transition> edgesByIdentifiers, Collection<Transition> outEdges2,
                                   Map<State, Integer> groupNumbers) {
         if (edgesByIdentifiers.size() != outEdges2.size())
             return false;
