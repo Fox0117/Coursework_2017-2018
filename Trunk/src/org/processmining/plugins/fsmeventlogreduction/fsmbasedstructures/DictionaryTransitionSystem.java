@@ -1,4 +1,4 @@
-package org.processmining.plugins;
+package org.processmining.plugins.fsmeventlogreduction.fsmbasedstructures;
 
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
@@ -103,5 +103,17 @@ public class DictionaryTransitionSystem extends TransitionSystemImpl {
 
         outEdgesByIdentifiers.get(fromState).put(identifier,
                 new Transition(fromState, toState, identifier));
+    }
+
+    public Map<State, Map<Object, Transition>> getOutEdgesByIdentifiers() {
+        return outEdgesByIdentifiers;
+    }
+
+    public String getFinalSuffixLinkIdentifier() {
+        return finalSuffixLinkIdentifier;
+    }
+
+    public String getSuffixLinkIdentifier() {
+        return suffixLinkIdentifier;
     }
 }
