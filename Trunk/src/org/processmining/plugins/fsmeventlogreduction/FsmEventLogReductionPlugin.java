@@ -1,10 +1,10 @@
 package org.processmining.plugins.fsmeventlogreduction;
 
+import org.deckfour.xes.model.XAttributeMap;
 import org.deckfour.xes.model.XLog;
 import org.processmining.framework.plugin.annotations.*;
 import org.processmining.framework.plugin.*;
 import org.processmining.contexts.uitopia.annotations.*;
-import org.processmining.models.graphbased.directed.transitionsystem.TransitionSystem;
 import org.processmining.plugins.fsmeventlogreduction.fsmbasedstructures.DictionaryTransitionSystem;
 import org.processmining.plugins.fsmeventlogreduction.fsmbasedstructures.FSMTransitionSystem;
 import org.processmining.plugins.fsmeventlogreduction.reductionalgo.FsmEventLogReductionAlgo;
@@ -13,38 +13,31 @@ import org.processmining.plugins.fsmeventlogreduction.reductionalgo.FsmEventLogR
 @Plugin(name = "FSMEventLogReduction",
         parameterLabels = {"FSM Event Log", "FSM Dictionary", "FSM Event Log Reduction Configuration"},
         returnLabels = {"Reduced FSM Event Log"},
-        returnTypes = {FSMTransitionSystem.class})
-// В случае, если возвращаемых объектов несколько - нужно возвращать Object[]
+        returnTypes = {XLog.class})
 
 public class FsmEventLogReductionPlugin {
     // Стандартный подход - два метода, один выполняет работу, второй создаёт (populate) необходимые конфигурации
-
-    // Stub
-    // Организация, автор, мыло
-    //TODO Проверить корректность почты
     @UITopiaVariant(affiliation = "NRU HSE", author = "A. Konchagin", email = "amkonchagin@hse.ru")
     // Показывает, какие параметры (по индексам) мы используем в данном методе (из parameterLabels)
-    // Можно указать variantLabel (сейчас не критично)
+    // Можно указать variantLabel
     @PluginVariant(requiredParameterLabels = { 0, 1, 2 })
-    public static TransitionSystem fsmEventLogReduction(final PluginContext context,
+    public static XLog fsmEventLogReduction(final PluginContext context,
                                                         XLog log,
                                                         XLog dictionary,
                                                         final FsmEventLogReductionConfiguration config){
 
-        DictionaryTransitionSystem dictionaryTransitionSystem = new DictionaryTransitionSystem("TEST", dictionary, "concept:name");
-        FSMTransitionSystem fsmTransitionSystem = new FSMTransitionSystem("TEST", log, "concept:name");
+        DictionaryTransitionSystem dictionaryTransitionSystem = new DictionaryTransitionSystem("ReducedLog", dictionary, "concept:name");
+        FSMTransitionSystem fsmTransitionSystem = new FSMTransitionSystem("ReducedLog", log, "concept:name");
         fsmTransitionSystem.minizeFSM();
         FsmEventLogReductionAlgo algo = new FsmEventLogReductionAlgo(fsmTransitionSystem, dictionaryTransitionSystem,
-        null, null);
-        algo.reduceFsmTypeLog();
-        return fsmTransitionSystem;//FsmEventLogReductionAlgo.reduceFsmTypeLog(log, dictionary);
+        log, "concept:name");
+
+        return algo.reduceFsmTypeLog();
     }
 
-
-    // Stub
     @UITopiaVariant(affiliation = "NRU HSE", author = "A. Konchagin", email = "amkonchagin@hse.ru")
     @PluginVariant(requiredParameterLabels = { 0, 1 })
-    public static TransitionSystem fsmEventLogReduction(final PluginContext context, XLog log, XLog dictionary){
+    public static XLog fsmEventLogReduction(final PluginContext context, XLog log, XLog dictionary){
         FsmEventLogReductionConfiguration config = new FsmEventLogReductionConfiguration(new Object());
         populate(context, config);
         return fsmEventLogReduction(context, log, dictionary, config);
@@ -52,14 +45,11 @@ public class FsmEventLogReductionPlugin {
 
 
     // Создаёт необходимые параметры/настройки и передаёт их в конфиг
-    // Stub
     private static void populate(PluginContext context, FsmEventLogReductionConfiguration config) {
         config.setSomething(new Object());
     }
 }
 
-// Класс-конфигурация для исполнения метода. Может оказаться бесполезным!
-// Stub
 class FsmEventLogReductionConfiguration {
     Object something;
 

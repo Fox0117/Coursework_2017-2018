@@ -10,9 +10,11 @@ import java.util.*;
 
 public class FSMTransitionSystem extends TransitionSystemImpl {
     private List<String> traceNames;
-    private Map<State, Set<Integer>> traceByToState = new LinkedHashMap<>();
     private Map<State, Set<Integer>> traceByFromState = new LinkedHashMap<>();
     private List<Map<State, Transition>> transByFromState = new ArrayList<>();
+    private Map<State, Set<Integer>> traceByToState = new LinkedHashMap<>();
+    private List<Map<State, Integer>> traceDistByToState = new ArrayList<>();
+    private List<List<State>> stateByDist = new LinkedList<>();
 
     public FSMTransitionSystem(String label, XLog log, String keyName) {
         super(label);
@@ -23,9 +25,13 @@ public class FSMTransitionSystem extends TransitionSystemImpl {
         for (int i = 0; i < log.size(); ++i) {
             StringBuilder prefix = new StringBuilder();
             XTrace trace = log.get(i);
+            stateByDist.add(new LinkedList<>());
+            stateByDist.get(i).add(this.getNode(""));
             traceByFromState.get(this.getNode("")).add(i);
             transByFromState.add(new LinkedHashMap<>());
+            traceDistByToState.add(new LinkedHashMap<>());
             traceNames.add(trace.getAttributes().get(keyName).toString());
+
             for (int j = 0; j < trace.size(); ++j) {
                 String fromPrefix = prefix.toString();
                 prefix.append(' ');
@@ -33,6 +39,10 @@ public class FSMTransitionSystem extends TransitionSystemImpl {
                 String toPrefix = prefix.toString();
                 this.addState(toPrefix);
                 State newState = this.getNode(toPrefix);
+
+                stateByDist.get(i).add(newState);
+                traceDistByToState.get(i).put(newState, j+1);
+
                 if (!traceByFromState.containsKey(newState))
                     traceByFromState.put(newState, new LinkedHashSet<>());
 
@@ -86,6 +96,15 @@ public class FSMTransitionSystem extends TransitionSystemImpl {
         if (!traceByToState.containsKey(newState))
             traceByToState.put(newState, new LinkedHashSet<>());
 
+        for (State state : groupOfStates) {
+            for (Integer trace : traceByToState.get(state)) {
+                Map<State, Integer> dists = traceDistByToState.get(trace);
+                stateByDist.get(trace).set(dists.get(state), newState);
+                dists.put(newState, traceDistByToState.get(trace).get(state));
+                dists.remove(state);
+            }
+        }
+
         for (int i = 0; i < groupOfStates.size(); ++i) {
             for (Integer traceIdentifier: traceByToState.get(groupOfStates.get(i)))
                 traceByToState.get(newState).add(traceIdentifier);
@@ -94,7 +113,7 @@ public class FSMTransitionSystem extends TransitionSystemImpl {
                 traceByFromState.get(newState).add(traceIdentifier);
 
             Iterator<Transition> edges = getOutEdges(groupOfStates.get(i)).iterator();
-            //Set<Transition> toRemove = new LinkedHashSet<>();
+
             while (edges.hasNext()) {
                 Transition outEdge = edges.next();
                 try {
@@ -154,6 +173,11 @@ public class FSMTransitionSystem extends TransitionSystemImpl {
             traceByFromState.remove(groupOfStates.get(i));
             traceByToState.remove(groupOfStates.get(i));
             this.removeState(groupOfStates.get(i));
+        }
+
+        if (unitedState.equals(",")) {
+            for (int i = 0; i < stateByDist.size(); ++i)
+                stateByDist.get(i).set(0, newState);
         }
     }
 
@@ -243,5 +267,17 @@ public class FSMTransitionSystem extends TransitionSystemImpl {
 
     public synchronized List<Map<State, Transition>> getTransByFromState() {
         return transByFromState;
+    }
+
+    public Integer getDistByToState(Integer trace, State state) {
+        return traceDistByToState.get(trace).get(state);
+    }
+
+    public State getStateByDists(Integer trace, Integer dist) {
+        return stateByDist.get(trace).get(dist);
+    }
+
+    public int getTraceLength(int trace) {
+        return stateByDist.get(trace).size() - 1;
     }
 }

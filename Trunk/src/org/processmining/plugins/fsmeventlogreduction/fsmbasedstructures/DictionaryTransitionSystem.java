@@ -10,17 +10,21 @@ import java.util.*;
 
 public class DictionaryTransitionSystem extends TransitionSystemImpl {
     private State root;
+    private List<String> traceNames = new LinkedList<>();
     private Map<State, Map<Object, Transition>> outEdgesByIdentifiers = new LinkedHashMap<>();
+    private Map<State, Integer> distByToState = new LinkedHashMap<>();
+    private Map<State, Integer> traceByFinalState = new LinkedHashMap<>();
     private String suffixLinkIdentifier = "# SUFFIX_LINK #";
     private String finalSuffixLinkIdentifier = "# FINAL_SUFFIX_LINK #";
 
-    public DictionaryTransitionSystem(String label, XLog log, String keyName) {
+    public DictionaryTransitionSystem(String label, XLog dict, String keyName) {
         super(label);
         this.addState("");
         root = this.getNode("");
-        for (int i = 0; i < log.size(); ++i) {
+        for (int i = 0; i < dict.size(); ++i) {
             StringBuilder prefix = new StringBuilder();
-            XTrace trace = log.get(i);
+            traceNames.add(dict.get(i).getAttributes().get(keyName).toString());
+            XTrace trace = dict.get(i);
             for (int j = 0; j < trace.size(); ++j) {
                 String fromPrefix = prefix.toString();
                 prefix.append(' ');
@@ -28,8 +32,12 @@ public class DictionaryTransitionSystem extends TransitionSystemImpl {
                 String toPrefix = prefix.toString();
                 this.addState(toPrefix);
                 State newState = this.getNode(toPrefix);
+                distByToState.put(newState, j+1);
                 if (j == trace.size() - 1)
+                {
                     newState.setAccepting(true);
+                    traceByFinalState.put(newState, i);
+                }
 
                 State fromState = this.getNode(fromPrefix);
                 Object transitionIdentifier = trace.get(j).getAttributes().get(keyName).toString();
@@ -115,5 +123,17 @@ public class DictionaryTransitionSystem extends TransitionSystemImpl {
 
     public String getSuffixLinkIdentifier() {
         return suffixLinkIdentifier;
+    }
+
+    public Integer getDistByToState(State state) {
+        return distByToState.get(state);
+    }
+
+    public String getTraceName(int i) {
+        return traceNames.get(i);
+    }
+
+    public Integer getTraceByFinalState(State state) {
+        return traceByFinalState.get(state);
     }
 }
